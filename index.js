@@ -2,7 +2,7 @@
  * Based on : https://github.com/component/queue
  */
 
-var type = require( "type-component" ),
+var is = require( "sc-is" ),
   drainedTimeout,
   noop = function () {};
 
@@ -10,18 +10,18 @@ function Queue( worker, concurrency ) {
   var self = this;
 
   self.worker = worker;
-  self.concurrency = type( concurrency ) === "number" ? concurrency : 1;
+  self.concurrency = is.a.number( concurrency ) ? concurrency : 1;
   self.pending = 0;
   self.jobs = [];
+  self.errors = [];
 
 }
 
 Queue.prototype.drain = noop;
-
 Queue.prototype.push = function ( data, callback ) {
   var self = this;
 
-  callback = type( callback ) === "function" ? callback : noop;
+  callback = is.a.func( callback ) ? callback : noop;
 
   self.jobs.push( {
     data: data,
@@ -48,8 +48,14 @@ Queue.prototype.exec = function ( job ) {
 
   self.pending++;
 
-  self.worker( job.data, function () {
+  self.worker( job.data, function ( error ) {
 
+    if ( error ) {
+      self.errors.push( {
+        data: job.data,
+        error: error
+      } );
+    }
     job.callback.apply( self, arguments );
     self.pending--;
     self.run();
@@ -58,7 +64,8 @@ Queue.prototype.exec = function ( job ) {
 
     drainedTimeout = setTimeout( function () {
       if ( self.jobs.length === 0 ) {
-        self.drain();
+        self.drain( self.errors.length > 0 ? self.errors : null );
+        self.errors = [];
       }
     }, 10 );
 

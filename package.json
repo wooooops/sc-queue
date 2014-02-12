@@ -12,6 +12,6 @@
     "should": "~3.0.1"
   },
   "dependencies": {
-    "type-component": "0.0.1"
+    "sc-is": "0.0.x"
   }
 }
