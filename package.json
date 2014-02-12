@@ -1,6 +1,6 @@
 {
   "name": "sc-queue",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A queueing module",
   "main": "index.js",
   "scripts": {
